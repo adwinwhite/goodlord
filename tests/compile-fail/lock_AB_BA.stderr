@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/compile-fail/lock_AB_BA.rs:19:30
+   |
+19 |     let (a, _) = lock_a.lock(&mut locked_b);
+   |                         ---- ^^^^^^^^^^^^^ expected `&mut LockToken<Unlocked>`, found `&mut LockToken<B>`
+   |                         |
+   |                         arguments to this method are incorrect
+   |
+   = note: expected mutable reference `&mut LockToken<Unlocked>`
+              found mutable reference `&mut LockToken<B>`
+note: method defined here
+  --> src/lib.rs
+   |
+   |     pub fn lock<'t, 's, PrevId>(
+   |            ^^^^

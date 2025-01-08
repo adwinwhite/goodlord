@@ -1,0 +1,10 @@
+error[E0119]: conflicting implementations of trait `LockAfter<A>` for type `A`
+ --> tests/compile-fail/graph_AA.rs:6:1
+  |
+6 | impl_lock_order!(A => A);
+  | ^^^^^^^^^^^^^^^^^^^^^^^^
+  | |
+  | first implementation here
+  | conflicting implementation for `A`
+  |
+  = note: this error originates in the macro `impl_lock_order` (in Nightly builds, run with -Z macro-backtrace for more info)

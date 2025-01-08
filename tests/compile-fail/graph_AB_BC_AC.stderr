@@ -1,0 +1,20 @@
+error[E0119]: conflicting implementations of trait `LockAfter<A>` for type `C`
+  --> tests/compile-fail/graph_AB_BC_AC.rs:10:1
+   |
+9  | impl_lock_order!(B => C);
+   | ------------------------ first implementation here
+10 | impl_lock_order!(A => C);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^ conflicting implementation for `C`
+   |
+   = note: this error originates in the macro `impl_lock_order` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0119]: conflicting implementations of trait `LockAfter<_>` for type `C`
+  --> tests/compile-fail/graph_AB_BC_AC.rs:10:1
+   |
+9  | impl_lock_order!(B => C);
+   | ------------------------ first implementation here
+10 | impl_lock_order!(A => C);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^ conflicting implementation for `C`
+   |
+   = note: downstream crates may implement trait `deadlock_proof::LockAfter<_>` for type `A`
+   = note: this error originates in the macro `impl_lock_order` (in Nightly builds, run with -Z macro-backtrace for more info)

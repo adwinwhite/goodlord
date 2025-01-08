@@ -1,0 +1,9 @@
+error[E0499]: cannot borrow `unlocked_token` as mutable more than once at a time
+  --> tests/compile-fail/lock_unlocked_token_twice.rs:19:30
+   |
+18 |     let (a, _) = lock_a.lock(&mut unlocked_token);
+   |                              ------------------- first mutable borrow occurs here
+19 |     let (b, _) = lock_b.lock(&mut unlocked_token);
+   |                              ^^^^^^^^^^^^^^^^^^^ second mutable borrow occurs here
+20 |     println!("{}, {}", a, b);
+   |                        - first borrow later used here

@@ -1,0 +1,4 @@
+/target
+/wip
+.direnv/
+.envrc

@@ -1,0 +1,9 @@
+[package]
+name = "goodlord"
+version = "0.0.1"
+edition = "2024"
+
+[dependencies]
+
+[dev-dependencies]
+trybuild = "1.0.101"
