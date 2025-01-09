@@ -1,6 +1,6 @@
-use deadlock_proof::LockAfter;
-use deadlock_proof::impl_lock_order;
-use deadlock_proof::Unlocked;
+use goodlord::LockAfter;
+use goodlord::impl_lock_order;
+use goodlord::Unlocked;
 
 struct A;
 

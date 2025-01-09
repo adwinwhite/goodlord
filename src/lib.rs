@@ -1,8 +1,7 @@
 #![feature(negative_impls)]
 
 use std::{
-    marker::PhantomData,
-    sync::{Mutex, MutexGuard},
+    cell::Cell, marker::PhantomData, sync::{Mutex, MutexGuard}
 };
 
 // Each lock is named.
@@ -22,7 +21,6 @@ impl<Id, T> GoodLock<Id, T> {
     // We can only lock if we have a token from previous lock.
     // Make the exclusive borrowed token and guard share lifetime so our token can only be used
     // again after the guard is dropped.
-    // Can this mut reference keep our previous token exclusive?
     pub fn lock<'t, 's, PrevId>(
         &'s self,
         _token: &'t mut LockToken<PrevId>,
@@ -47,9 +45,25 @@ pub struct LockToken<Id> {
 
 pub struct Unlocked;
 
-// FIXME: We can create as many `UNLOCKED` as we want.
+thread_local! {
+    static HAS_LOCK_ROOT: Cell<bool> = const { Cell::new(false) };
+}
+
 impl LockToken<Unlocked> {
-    pub const UNLOCKED: Self = LockToken { id: PhantomData };
+    pub fn new() -> Self {
+        if HAS_LOCK_ROOT.get() {
+            panic!("A thread can only have a single `UNLOCKED` token.");
+        } else {
+            HAS_LOCK_ROOT.set(true);
+            LockToken { id: PhantomData }
+        }
+    }
+}
+
+impl Default for LockToken<Unlocked> {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 
@@ -79,4 +93,35 @@ macro_rules! impl_lock_order {
         /// LockAfter(b, X):- LockAfter(a, X), LockAfter(b, a).
         unsafe impl<X> LockAfter<X> for $B where $A: LockAfter<X> {}
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::LockToken;
+
+    #[test]
+    #[should_panic]
+    fn duplicate_unlocked_tokens() {
+
+        let _unlocked_token1 = LockToken::new();
+        let _unlocked_token2 = LockToken::new();
+    }
+
+    #[test]
+    fn one_token_one_thread() {
+        use std::thread;
+
+        let _unlocked_token0 = LockToken::new();
+
+        let handle1 = thread::spawn(|| {
+            let _unlocked_token1 = LockToken::new();
+        });
+
+        let handle2 = thread::spawn(|| {
+            let _unlocked_token2 = LockToken::new();
+        });
+
+        assert!(handle1.join().is_ok());
+        assert!(handle2.join().is_ok());
+    }
 }

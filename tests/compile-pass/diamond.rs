@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use deadlock_proof::LockAfter;
-use deadlock_proof::impl_lock_order;
-use deadlock_proof::LockToken;
-use deadlock_proof::GoodLock;
-use deadlock_proof::Unlocked;
+use goodlord::LockAfter;
+use goodlord::impl_lock_order;
+use goodlord::LockToken;
+use goodlord::GoodLock;
+use goodlord::Unlocked;
 
 //   A
 //  / \
@@ -34,14 +34,14 @@ fn main() {
         let lock_c = lock_c.clone();
         let lock_d = lock_d.clone();
         std::thread::spawn(move || {
-            let mut unlocked_token = LockToken::UNLOCKED;
+            let mut unlocked_token = LockToken::new();
             let (a, mut a_token) = lock_a.lock(&mut unlocked_token);
             let (c, mut c_token) = lock_c.lock(&mut a_token);
             let (d, _) = lock_d.lock(&mut c_token);
             println!("{}, {}, {}", a, c, d);
         });
     }
-    let mut unlocked_token = LockToken::UNLOCKED;
+    let mut unlocked_token = LockToken::new();
     let (a, mut a_token) = lock_a.lock(&mut unlocked_token);
     let (b, mut b_token) = lock_b.lock(&mut a_token);
     let (d, _) = lock_d.lock(&mut b_token);
