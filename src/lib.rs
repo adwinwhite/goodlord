@@ -1,7 +1,9 @@
 #![feature(negative_impls)]
 
 use std::{
-    cell::Cell, marker::PhantomData, sync::{Mutex, MutexGuard}
+    cell::Cell,
+    marker::PhantomData,
+    sync::{Mutex, MutexGuard},
 };
 
 // Each lock is named.
@@ -50,6 +52,7 @@ thread_local! {
 }
 
 impl LockToken<Unlocked> {
+    // The only public way of obtaining a token.
     pub fn new() -> Self {
         if HAS_LOCK_ROOT.get() {
             panic!("A thread can only have a single `UNLOCKED` token.");
@@ -66,12 +69,43 @@ impl Default for LockToken<Unlocked> {
     }
 }
 
+// Easier to use if we don't have to pass root token around.
+// We cannot specialize `Drop` for generic type thus this newtype.
+pub struct RootToken(LockToken<Unlocked>);
 
+impl RootToken {
+    pub fn new() -> Self {
+        if HAS_LOCK_ROOT.get() {
+            panic!("A thread can only have a single `UNLOCKED` token.");
+        } else {
+            HAS_LOCK_ROOT.set(true);
+            let token = LockToken { id: PhantomData };
+            RootToken(token)
+        }
+    }
+}
+
+impl Default for RootToken {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Drop for RootToken {
+    fn drop(&mut self) {
+        HAS_LOCK_ROOT.set(false);
+    }
+}
+
+impl AsMut<LockToken<Unlocked>> for RootToken {
+    fn as_mut(&mut self) -> &mut LockToken<Unlocked> {
+        &mut self.0
+    }
+}
 
 /// # Safety
 /// Self must always lock after M.
 pub unsafe trait LockAfter<M> {}
-
 
 // FIXME: negative impl doesn't solve conflicting impls.
 // impl !LockAfter<Unlocked> for Unlocked {}
@@ -102,7 +136,6 @@ mod tests {
     #[test]
     #[should_panic]
     fn duplicate_unlocked_tokens() {
-
         let _unlocked_token1 = LockToken::new();
         let _unlocked_token2 = LockToken::new();
     }

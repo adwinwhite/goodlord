@@ -21,12 +21,14 @@ fn main() {
         let lock_a2 = lock_a2.clone();
         thread::spawn(move || {
             let mut unlocked_token = LockToken::new();
-            let (a1, _) = lock_a1.lock(&mut unlocked_token);
-            let (a2, _) = lock_a2.lock(&mut unlocked_token);
+            let (a1, a1_token) = lock_a1.lock(&mut unlocked_token);
+            // We cannot use a1_token to lock lock_a2 due to we can't have `A => A`.
+            let (a2, _) = lock_a2.lock(&mut a1_token);
             println!("{}, {}", a1, a2);
         })
     };
     let (a2, _) = lock_a2.lock(&mut unlocked_token);
+    // We cannot use a token for multiple times in the same scope.
     let (a1, _) = lock_a1.lock(&mut unlocked_token);
     handle.join();
     println!("{}, {}", a2, a1);

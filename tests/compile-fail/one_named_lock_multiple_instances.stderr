@@ -1,20 +1,15 @@
-error[E0499]: cannot borrow `unlocked_token` as mutable more than once at a time
-  --> tests/compile-fail/one_named_lock_multiple_instances.rs:25:40
+error[E0308]: mismatched types
+  --> tests/compile-fail/one_named_lock_multiple_instances.rs:26:40
    |
-24 |             let (a1, _) = lock_a1.lock(&mut unlocked_token);
-   |                                        ------------------- first mutable borrow occurs here
-25 |             let (a2, _) = lock_a2.lock(&mut unlocked_token);
-   |                                        ^^^^^^^^^^^^^^^^^^^ second mutable borrow occurs here
-26 |             println!("{}, {}", a1, a2);
-   |                                -- first borrow later used here
-
-error[E0499]: cannot borrow `unlocked_token` as mutable more than once at a time
-  --> tests/compile-fail/one_named_lock_multiple_instances.rs:30:32
+26 |             let (a2, _) = lock_a2.lock(&mut a1_token);
+   |                                   ---- ^^^^^^^^^^^^^ expected `&mut LockToken<Unlocked>`, found `&mut LockToken<A>`
+   |                                   |
+   |                                   arguments to this method are incorrect
    |
-29 |     let (a2, _) = lock_a2.lock(&mut unlocked_token);
-   |                                ------------------- first mutable borrow occurs here
-30 |     let (a1, _) = lock_a1.lock(&mut unlocked_token);
-   |                                ^^^^^^^^^^^^^^^^^^^ second mutable borrow occurs here
-31 |     handle.join();
-32 |     println!("{}, {}", a2, a1);
-   |                        -- first borrow later used here
+   = note: expected mutable reference `&mut LockToken<Unlocked>`
+              found mutable reference `&mut LockToken<A>`
+note: method defined here
+  --> src/lib.rs
+   |
+   |     pub fn lock<'t, 's, PrevId>(
+   |            ^^^^
